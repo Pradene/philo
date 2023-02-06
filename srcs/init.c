@@ -26,21 +26,31 @@ void	init_fork(t_philo *philo, int count)
 	forks = malloc(sizeof(pthread_mutex_t) * count);
 	i = -1;
 	while (++i < count)
+		pthread_mutex_init(&forks[i], NULL);
+	i = -1;
+	while (++i < count)
 	{
 		philo[i].r_fork = &forks[i];
 		if (i)
 			philo[i].l_fork = &forks[i - 1];
-		else
+		else if (!i && count > 1)
 			philo[i].l_fork = &forks[count - 1];
+		else
+			philo[i].l_fork = NULL;
 	}
 }
 
-void	init(t_philo **philo, int count)
+void	init(t_philo **philo, t_time time, int count)
 {
 	int	i;
 
 	*philo = malloc(sizeof(t_philo) * count);
 	i = -1;
 	while (++i < count)
+	{
 		(*philo)[i].n = i;
+		(*philo)[i].time.die = time.die;
+		(*philo)[i].time.eat = time.eat;
+		(*philo)[i].time.sleep = time.sleep;
+	}
 }

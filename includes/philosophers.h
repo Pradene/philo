@@ -14,29 +14,31 @@
 # define PHILOSOPHERS_H
 
 # include <sys/time.h>
+# include <unistd.h>
 # include <pthread.h>
 # include <stdbool.h>
 # include <stdlib.h>
 # include <stdint.h>
 # include <stdio.h>
 
-typedef enum e_state
+typedef struct s_time
 {
-	EAT,
-	SLEEP,
-	THINK
-}	t_state;
+	uint32_t	die;
+	uint32_t	eat;
+	uint32_t	sleep;
+}	t_time;
 
 typedef struct s_philo
 {
 	uint32_t		n;
-	t_state			state;
+	t_time			time;
+	uint32_t		last_eat;
 	pthread_mutex_t	*r_fork;
 	pthread_mutex_t	*l_fork;
 }	t_philo;
 
 void	destroy(t_philo *philo);
 void	init_fork(t_philo *philo, int count);
-void	init(t_philo **philo, int count);
+void	init(t_philo **philo, t_time time, int count);
 
 #endif
