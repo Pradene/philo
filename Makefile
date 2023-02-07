@@ -1,5 +1,6 @@
 FILES	= init.c \
-		main.c
+		main.c \
+		timestamp.c
 
 SRCS	= $(addprefix srcs/, $(FILES))
 

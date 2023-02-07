@@ -12,20 +12,28 @@
 
 #include "../includes/philosophers.h"
 
-size_t	timestamp(void)
+void	wait(t_philo *philo, size_t time)
 {
-	struct timeval	time;
-	size_t			timestamp;
+	size_t	i;
 
-	gettimeofday(&time, NULL);
-	timestamp = time.tv_sec * 1000 + time.tv_usec / 1000;
-	return (timestamp);
+	i = 0;
+	while (++i < time)
+	{
+		usleep(1 * 1000);
+		if (timestamp() - philo->last_eat > philo->time.die)
+		{
+			printf("%ld %d is died\n", timestamp(), philo->n);
+			exit(EXIT_FAILURE);
+		}
+	}
 }
 
 void	*print(void *philo)
 {
+	int		i;
 	t_philo	*p;
 
+	i = 0;
 	p = (t_philo *)philo;
 	while (1)
 	{
@@ -34,13 +42,17 @@ void	*print(void *philo)
 		printf("%ld %d has taken a fork\n", timestamp(), p->n);
 		printf("%ld %d has taken a fork\n", timestamp(), p->n);
 		printf("%ld %d is eating\n", timestamp(), p->n);
-		usleep(p->time.eat * 1000);
+		p->last_eat = timestamp();
+		wait(p, p->time.eat);
 		pthread_mutex_unlock(p->r_fork);
 		pthread_mutex_unlock(p->l_fork);
+		if (p->i != -1 && p->i == ++i)
+			break ;
 		printf("%ld %d is sleeping\n", timestamp(), p->n);
-		usleep(p->time.sleep * 1000);
+		wait(p, p->time.sleep);
 		printf("%ld %d is thinking\n", timestamp(), p->n);
 	}
+	return (NULL);
 }
 
 void	launch(t_philo *philo, int count)
@@ -60,6 +72,7 @@ void	launch(t_philo *philo, int count)
 
 int	main(int argc, char **argv)
 {
+	int			i;
 	size_t		count;
 	t_time		time;
 	t_philo		*philo;
@@ -70,7 +83,11 @@ int	main(int argc, char **argv)
 	time.die = (size_t)atoi(argv[2]);
 	time.eat = (size_t)atoi(argv[3]);
 	time.sleep = (size_t)atoi(argv[4]);
-	init(&philo, time, count);
+	if (argc == 6)
+		i = atoi(argv[5]);
+	else
+		i = -1;
+	init(&philo, time, count, i);
 	init_fork(philo, count);
 	launch(philo, count);
 	destroy(philo);

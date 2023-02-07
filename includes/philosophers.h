@@ -31,14 +31,19 @@ typedef struct s_time
 typedef struct s_philo
 {
 	uint32_t		n;
+	int32_t			i;
 	t_time			time;
-	uint32_t		last_eat;
+	size_t			last_eat;
 	pthread_mutex_t	*r_fork;
 	pthread_mutex_t	*l_fork;
 }	t_philo;
 
+// INIT
 void	destroy(t_philo *philo);
 void	init_fork(t_philo *philo, int count);
-void	init(t_philo **philo, t_time time, int count);
+void	init(t_philo **philo, t_time time, int count, int i);
+
+// TIMESTAMP
+size_t	timestamp(void);
 
 #endif

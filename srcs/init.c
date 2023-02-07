@@ -40,7 +40,7 @@ void	init_fork(t_philo *philo, int count)
 	}
 }
 
-void	init(t_philo **philo, t_time time, int count)
+void	init(t_philo **philo, t_time time, int count, int iteration)
 {
 	int	i;
 
@@ -52,5 +52,7 @@ void	init(t_philo **philo, t_time time, int count)
 		(*philo)[i].time.die = time.die;
 		(*philo)[i].time.eat = time.eat;
 		(*philo)[i].time.sleep = time.sleep;
+		(*philo)[i].i = iteration;
+		(*philo)[i].last_eat = timestamp();
 	}
 }
