@@ -17,7 +17,7 @@ void	wait(t_philo *philo, size_t time)
 	size_t	i;
 
 	i = 0;
-	while (++i < time)
+	while (++i <= time)
 	{
 		usleep(1 * 1000);
 		if (timestamp() - philo->last_eat > philo->time.die)
@@ -35,17 +35,19 @@ void	*print(void *philo)
 
 	i = 0;
 	p = (t_philo *)philo;
+	if (p->n % 2)
+		wait(p, p->time.eat);
 	while (1)
 	{
-		pthread_mutex_lock(p->r_fork);
-		pthread_mutex_lock(p->l_fork);
+		pthread_mutex_lock(p->rf);
+		pthread_mutex_lock(p->lf);
 		printf("%ld %d has taken a fork\n", timestamp(), p->n);
 		printf("%ld %d has taken a fork\n", timestamp(), p->n);
 		printf("%ld %d is eating\n", timestamp(), p->n);
 		p->last_eat = timestamp();
 		wait(p, p->time.eat);
-		pthread_mutex_unlock(p->r_fork);
-		pthread_mutex_unlock(p->l_fork);
+		pthread_mutex_unlock(p->rf);
+		pthread_mutex_unlock(p->lf);
 		if (p->i != -1 && p->i == ++i)
 			break ;
 		printf("%ld %d is sleeping\n", timestamp(), p->n);
@@ -88,8 +90,7 @@ int	main(int argc, char **argv)
 	else
 		i = -1;
 	init(&philo, time, count, i);
-	init_fork(philo, count);
 	launch(philo, count);
-	destroy(philo);
+	destroy(philo, count);
 	return (0);
 }

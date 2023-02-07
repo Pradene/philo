@@ -12,31 +12,26 @@
 
 #include "../includes/philosophers.h"
 
-void	destroy(t_philo *philo)
+void	destroy(t_philo *philo, int count)
 {
-	free((*philo).r_fork);
+	int	i;
+
+	i = -1;
+	while (++i < count)
+		free(philo[i].rf);
 	free(philo);
 }
 
 void	init_fork(t_philo *philo, int count)
 {
-	pthread_mutex_t	*forks;
-	int				i;
+	int	i;
 
-	forks = malloc(sizeof(pthread_mutex_t) * count);
-	i = -1;
-	while (++i < count)
-		pthread_mutex_init(&forks[i], NULL);
 	i = -1;
 	while (++i < count)
 	{
-		philo[i].r_fork = &forks[i];
-		if (i)
-			philo[i].l_fork = &forks[i - 1];
-		else if (!i && count > 1)
-			philo[i].l_fork = &forks[count - 1];
-		else
-			philo[i].l_fork = NULL;
+		philo[i].rf = malloc(sizeof(pthread_mutex_t));
+		pthread_mutex_init(philo[i].rf, NULL);
+		philo[(i + 1) % count].lf = philo[i].rf;
 	}
 }
 
@@ -44,8 +39,9 @@ void	init(t_philo **philo, t_time time, int count, int iteration)
 {
 	int	i;
 
-	*philo = malloc(sizeof(t_philo) * count);
 	i = -1;
+	*philo = malloc(sizeof(t_philo) * count);
+	init_fork(*philo, count);
 	while (++i < count)
 	{
 		(*philo)[i].n = i;

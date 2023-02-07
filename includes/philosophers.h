@@ -34,12 +34,12 @@ typedef struct s_philo
 	int32_t			i;
 	t_time			time;
 	size_t			last_eat;
-	pthread_mutex_t	*r_fork;
-	pthread_mutex_t	*l_fork;
+	pthread_mutex_t	*rf;
+	pthread_mutex_t	*lf;
 }	t_philo;
 
 // INIT
-void	destroy(t_philo *philo);
+void	destroy(t_philo *philo, int count);
 void	init_fork(t_philo *philo, int count);
 void	init(t_philo **philo, t_time time, int count, int i);
 
