@@ -20,52 +20,75 @@ void	wait(t_philo *philo, size_t time)
 	while (++i <= time)
 	{
 		usleep(1 * 1000);
-		if (timestamp() - philo->last_eat > philo->time.die)
+		if (timestamp() - philo->last_eat > philo->param->d_time)
 		{
-			printf("%ld %d is died\n", timestamp(), philo->n);
-			exit(EXIT_FAILURE);
+			pthread_mutex_lock(&philo->param->m_dead);
+			philo->param->dead = true;
+			pthread_mutex_unlock(&philo->param->m_dead);
 		}
 	}
 }
 
-void	*print(void *philo)
+void	print(t_philo *philo, t_state state)
+{
+	static int	i = 1;
+
+	pthread_mutex_lock(&philo->param->m_write);
+	if (philo->param->dead && i)
+		printf("%ld %d died\n", timestamp(), philo->id + --i);
+	else if (state == FORK && !philo->param->dead)
+		printf("%ld %d has taken a fork\n", timestamp(), philo->id);
+	else if (state == EAT && !philo->param->dead)
+		printf("%ld %d is eating\n", timestamp(), philo->id);
+	else if (state == SLEEP && !philo->param->dead)
+		printf("%ld %d is sleeping\n", timestamp(), philo->id);
+	else if (state == THINK && !philo->param->dead)
+		printf("%ld %d is thinking\n", timestamp(), philo->id);
+	pthread_mutex_unlock(&philo->param->m_write);
+}
+
+void	*routine(void *philo)
 {
 	int		i;
 	t_philo	*p;
 
 	i = 0;
 	p = (t_philo *)philo;
-	if (p->n % 2)
-		wait(p, p->time.eat);
+	if (p->id % 2)
+		wait(p, p->param->e_time);
 	while (1)
 	{
-		pthread_mutex_lock(p->rf);
-		pthread_mutex_lock(p->lf);
-		printf("%ld %d has taken a fork\n", timestamp(), p->n);
-		printf("%ld %d has taken a fork\n", timestamp(), p->n);
-		printf("%ld %d is eating\n", timestamp(), p->n);
-		p->last_eat = timestamp();
-		wait(p, p->time.eat);
-		pthread_mutex_unlock(p->rf);
-		pthread_mutex_unlock(p->lf);
-		if (p->i != -1 && p->i == ++i)
+		if (p->param->dead)
 			break ;
-		printf("%ld %d is sleeping\n", timestamp(), p->n);
-		wait(p, p->time.sleep);
-		printf("%ld %d is thinking\n", timestamp(), p->n);
+		pthread_mutex_lock(p->m_rf);
+		print(p, FORK);
+		pthread_mutex_lock(p->m_lf);
+		print(p, FORK);
+		print(p, EAT);
+		p->last_eat = timestamp();
+		wait(p, p->param->e_time);
+		pthread_mutex_unlock(p->m_rf);
+		pthread_mutex_unlock(p->m_lf);
+		if (p->param->rep != -1 && ++i == p->param->rep)
+			break ;
+		print(p, SLEEP);
+		wait(p, p->param->s_time);
+		print(p, THINK);
 	}
 	return (NULL);
 }
 
-void	launch(t_philo *philo, int count)
+void	launch(t_philo *philo)
 {
 	pthread_t	*t;
 	int			i;
+	int			count;
 
+	count = philo->param->count;
 	t = malloc(sizeof(pthread_t) * count);
 	i = -1;
 	while (++i < count)
-		pthread_create(&t[i], NULL, &print, &philo[i]);
+		pthread_create(&t[i], NULL, &routine, &philo[i]);
 	i = -1;
 	while (++i < count)
 		pthread_join(t[i], NULL);
@@ -74,23 +97,12 @@ void	launch(t_philo *philo, int count)
 
 int	main(int argc, char **argv)
 {
-	int			i;
-	size_t		count;
-	t_time		time;
+	t_param		param;
 	t_philo		*philo;
 
-	if (argc != 5 && argc != 6)
-		exit(EXIT_FAILURE);
-	count = (size_t)atoi(argv[1]);
-	time.die = (size_t)atoi(argv[2]);
-	time.eat = (size_t)atoi(argv[3]);
-	time.sleep = (size_t)atoi(argv[4]);
-	if (argc == 6)
-		i = atoi(argv[5]);
-	else
-		i = -1;
-	init(&philo, time, count, i);
-	launch(philo, count);
-	destroy(philo, count);
+	init_param(&param, argc, argv);
+	init(&philo, &param);
+	launch(philo);
+	destroy(philo);
 	return (0);
 }

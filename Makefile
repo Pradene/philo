@@ -1,4 +1,6 @@
-FILES	= init.c \
+FILES	= utils/atoi.c \
+		utils/error.c \
+		init.c \
 		main.c \
 		timestamp.c
 
@@ -8,7 +10,7 @@ OBJS	= $(SRCS:.c=.o)
 
 CC		= cc
 
-FLAGS	= -Wall -Wextra -Werror
+FLAGS	= -Wall -Wextra -Werror -g
 
 NAME	= philo
 
