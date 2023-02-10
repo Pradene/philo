@@ -2,6 +2,8 @@ FILES	= utils/atoi.c \
 		utils/error.c \
 		init.c \
 		main.c \
+		print.c \
+		routine.c \
 		timestamp.c
 
 SRCS	= $(addprefix srcs/, $(FILES))
@@ -10,14 +12,14 @@ OBJS	= $(SRCS:.c=.o)
 
 CC		= cc
 
-FLAGS	= -Wall -Wextra -Werror -g
+CFLAGS	= -Wall -Wextra -Werror -g3
 
 NAME	= philo
 
 all:	$(NAME)
 
 $(NAME): $(OBJS)
-	$(CC) $(FLAGS) $(OBJS) -o $(NAME)
+	$(CC) $(CFLAGS) -pthread $(OBJS) -o $(NAME)
 
 clean:
 	rm -rf $(OBJS)

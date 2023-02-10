@@ -31,14 +31,16 @@ typedef enum e_state
 
 typedef struct s_param
 {
-	uint32_t		count;
+	int32_t			count;
 	uint32_t		e_time;
 	uint32_t		s_time;
 	uint32_t		d_time;
+	int32_t			eat_count;
 	int32_t			rep;
 	bool			dead;
 	pthread_mutex_t	m_write;
 	pthread_mutex_t	m_dead;
+	pthread_mutex_t	m_eat;
 }	t_param;
 
 typedef struct s_philo
@@ -52,11 +54,16 @@ typedef struct s_philo
 
 // INIT
 void	destroy(t_philo *philo);
-void	init_param(t_param *param, int argc, char **argv);
-void	init(t_philo **philo, t_param *param);
+void	init(t_philo **philo, t_param *param, int argc, char **argv);
 
 // TIMESTAMP
 size_t	timestamp(void);
+
+// PRINT
+void	print(t_philo *philo, t_state state);
+
+// ROUTINE
+void	*routine(void *philo);
 
 // UTILS
 int		ft_atoi(const char *s);
