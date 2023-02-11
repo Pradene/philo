@@ -17,6 +17,7 @@ void	print(t_philo *p, t_state state)
 	static int	i = 1;
 
 	pthread_mutex_lock(&p->param->m_write);
+	pthread_mutex_lock(&p->param->m_dead);
 	if (p->param->dead && i)
 		printf("%ld %d died\n", timestamp(), p->id + --i);
 	else if (state == FORK && !p->param->dead && (p->param->rep == -1
@@ -32,4 +33,5 @@ void	print(t_philo *p, t_state state)
 			|| p->param->eat_count / p->param->count < p->param->rep))
 		printf("%ld %d is thinking\n", timestamp(), p->id);
 	pthread_mutex_unlock(&p->param->m_write);
+	pthread_mutex_unlock(&p->param->m_dead);
 }

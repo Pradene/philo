@@ -59,11 +59,13 @@ static void	init_param(t_param *param, int argc, char **argv)
 
 void	init(t_philo **philo, t_param *param, int argc, char **argv)
 {
-	int	i;
-	int	count;
+	int		i;
+	int		count;
+	size_t	time;
 
 	init_param(param, argc, argv);
 	count = param->count;
+	time = timestamp();
 	*philo = malloc(sizeof(t_philo) * count);
 	i = -1;
 	while (++i < count)
@@ -76,6 +78,6 @@ void	init(t_philo **philo, t_param *param, int argc, char **argv)
 			(*philo)[(i + 1) % count].m_lf = (*philo)[i].m_rf;
 		(*philo)[i].id = i + 1;
 		(*philo)[i].param = param;
-		(*philo)[i].last_eat = timestamp();
+		(*philo)[i].last_eat = time;
 	}
 }

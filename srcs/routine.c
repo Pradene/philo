@@ -42,14 +42,15 @@ static void	eat(t_philo *p)
 	}
 	pthread_mutex_lock(p->m_lf);
 	print(p, FORK);
-	print(p, EAT);
 	p->last_eat = timestamp();
-	wait(p, p->param->e_time);
+	print(p, EAT);
 	pthread_mutex_lock(&p->param->m_eat);
 	p->param->eat_count++;
 	pthread_mutex_unlock(&p->param->m_eat);
+	wait(p, p->param->e_time);
 	pthread_mutex_unlock(p->m_rf);
 	pthread_mutex_unlock(p->m_lf);
+	wait(p, p->param->e_time - p->param->s_time);
 }
 
 void	*routine(void *philo)
@@ -61,6 +62,7 @@ void	*routine(void *philo)
 		wait(p, p->param->e_time / 2);
 	while (1)
 	{
+		usleep(1 * 1000);
 		if (p->param->dead)
 			break ;
 		eat(p);
