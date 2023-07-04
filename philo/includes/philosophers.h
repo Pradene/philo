@@ -57,6 +57,7 @@ void	destroy(t_philo *philo);
 void	init(t_philo **philo, t_param *param, int argc, char **argv);
 
 // TIMESTAMP
+size_t	start_time(int n);
 size_t	timestamp(void);
 
 // PRINT

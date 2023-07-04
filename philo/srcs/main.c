@@ -38,6 +38,7 @@ int	main(int argc, char **argv)
 	t_param		param;
 	t_philo		*philo;
 
+	start_time(1);
 	init(&philo, &param, argc, argv);
 	launch(philo);
 	destroy(philo);

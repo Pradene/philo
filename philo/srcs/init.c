@@ -12,6 +12,13 @@
 
 #include "../includes/philosophers.h"
 
+void	quit(t_philo *philo)
+{
+	pthread_mutex_destroy(&philo->param->m_write);
+	pthread_mutex_destroy(&philo->param->m_dead);
+	pthread_mutex_destroy(&philo->param->m_eat);
+}
+
 void	destroy(t_philo *philo)
 {
 	int	i;
@@ -59,14 +66,16 @@ static void	init_param(t_param *param, int argc, char **argv)
 
 void	init(t_philo **philo, t_param *param, int argc, char **argv)
 {
-	int		i;
-	int		count;
-	size_t	time;
+	int				i;
+	int				count;
+	size_t			time;
 
 	init_param(param, argc, argv);
 	count = param->count;
 	time = timestamp();
 	*philo = malloc(sizeof(t_philo) * count);
+	if (!(*philo))
+		return (quit(*philo));
 	i = -1;
 	while (++i < count)
 	{

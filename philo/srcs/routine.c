@@ -32,7 +32,10 @@ static void	wait(t_philo *philo, size_t time)
 
 static void	eat(t_philo *p)
 {
-	pthread_mutex_lock(p->m_rf);
+	if (p->id % 2)
+		pthread_mutex_lock(p->m_rf);
+	else
+		pthread_mutex_lock(p->m_lf);
 	print(p, FORK);
 	if (p->param->count == 1)
 	{
@@ -40,7 +43,10 @@ static void	eat(t_philo *p)
 		wait(p, p->param->d_time * 2);
 		return ;
 	}
-	pthread_mutex_lock(p->m_lf);
+	if (p->id % 2)
+		pthread_mutex_lock(p->m_lf);
+	else
+		pthread_mutex_lock(p->m_rf);
 	print(p, FORK);
 	p->last_eat = timestamp();
 	print(p, EAT);
@@ -48,8 +54,8 @@ static void	eat(t_philo *p)
 	p->param->eat_count++;
 	pthread_mutex_unlock(&p->param->m_eat);
 	wait(p, p->param->e_time);
-	pthread_mutex_unlock(p->m_rf);
 	pthread_mutex_unlock(p->m_lf);
+	pthread_mutex_unlock(p->m_rf);
 	wait(p, p->param->e_time - p->param->s_time);
 }
 
@@ -59,15 +65,15 @@ void	*routine(void *philo)
 
 	p = (t_philo *)philo;
 	if ((p->id + 1) % 2)
-		wait(p, p->param->e_time / 2);
+		wait(p, p->param->e_time);
 	while (1)
 	{
 		usleep(1 * 1000);
 		if (p->param->dead)
 			break ;
 		eat(p);
-		if (p->param->rep != -1
-			&& p->param->eat_count / p->param->count == p->param->rep)
+		if (p->param->rep != -1 \
+		&& p->param->eat_count / p->param->count == p->param->rep)
 			break ;
 		print(p, SLEEP);
 		wait(p, p->param->s_time);
