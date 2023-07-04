@@ -20,43 +20,54 @@ static void	wait(t_philo *philo, size_t time)
 	while (++i <= time / 10)
 	{
 		usleep(1 * 1000 * 10);
-		if (timestamp() - philo->last_eat >= philo->param->d_time)
+		if (timestamp() - philo->last_eat >= philo->prm->d_time)
 		{
-			pthread_mutex_lock(&philo->param->m_dead);
-			philo->param->dead = true;
-			pthread_mutex_unlock(&philo->param->m_dead);
+			pthread_mutex_lock(&philo->prm->m_dead);
+			philo->prm->dead = true;
+			pthread_mutex_unlock(&philo->prm->m_dead);
 			break ;
 		}
 	}
 }
 
-static void	eat(t_philo *p)
+static void	lock_fork(t_philo *p, int n)
 {
 	if (p->id % 2)
-		pthread_mutex_lock(p->m_rf);
+	{
+		if (n)
+			pthread_mutex_lock(p->m_rf);
+		else
+			pthread_mutex_lock(p->m_lf);
+	}
 	else
-		pthread_mutex_lock(p->m_lf);
+	{
+		if (n)
+			pthread_mutex_lock(p->m_lf);
+		else
+			pthread_mutex_lock(p->m_rf);
+	}
+}
+
+static void	eat(t_philo *p)
+{
+	lock_fork(p, 1);
 	print(p, FORK);
-	if (p->param->count == 1)
+	if (p->prm->count == 1)
 	{
 		pthread_mutex_unlock(p->m_rf);
-		wait(p, p->param->d_time * 2);
+		wait(p, p->prm->d_time * 2);
 		return ;
 	}
-	if (p->id % 2)
-		pthread_mutex_lock(p->m_lf);
-	else
-		pthread_mutex_lock(p->m_rf);
+	lock_fork(p, 0);
 	print(p, FORK);
 	p->last_eat = timestamp();
 	print(p, EAT);
-	pthread_mutex_lock(&p->param->m_eat);
-	p->param->eat_count++;
-	pthread_mutex_unlock(&p->param->m_eat);
-	wait(p, p->param->e_time);
+	pthread_mutex_lock(&p->prm->m_eat);
+	p->prm->c_eat++;
+	pthread_mutex_unlock(&p->prm->m_eat);
+	wait(p, p->prm->e_time);
 	pthread_mutex_unlock(p->m_lf);
 	pthread_mutex_unlock(p->m_rf);
-	wait(p, p->param->e_time - p->param->s_time);
 }
 
 void	*routine(void *philo)
@@ -64,19 +75,25 @@ void	*routine(void *philo)
 	t_philo	*p;
 
 	p = (t_philo *)philo;
-	if ((p->id + 1) % 2)
-		wait(p, p->param->e_time);
 	while (1)
 	{
-		usleep(1 * 1000);
-		if (p->param->dead)
+		pthread_mutex_lock(&p->prm->m_dead);
+		if (p->prm->dead)
+		{
+			pthread_mutex_unlock(&p->prm->m_dead);
 			break ;
+		}
+		pthread_mutex_unlock(&p->prm->m_dead);
 		eat(p);
-		if (p->param->rep != -1 \
-		&& p->param->eat_count / p->param->count == p->param->rep)
+		pthread_mutex_lock(&p->prm->m_eat);
+		if (p->prm->rep != -1 && p->prm->c_eat / p->prm->count == p->prm->rep)
+		{
+			pthread_mutex_unlock(&p->prm->m_eat);
 			break ;
+		}
+		pthread_mutex_unlock(&p->prm->m_eat);
 		print(p, SLEEP);
-		wait(p, p->param->s_time);
+		wait(p, p->prm->s_time);
 		print(p, THINK);
 	}
 	return (NULL);

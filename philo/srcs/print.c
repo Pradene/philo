@@ -16,22 +16,24 @@ void	print(t_philo *p, t_state state)
 {
 	static int	i = 1;
 
-	pthread_mutex_lock(&p->param->m_write);
-	pthread_mutex_lock(&p->param->m_dead);
-	if (p->param->dead && i)
+	pthread_mutex_lock(&p->prm->m_write);
+	pthread_mutex_lock(&p->prm->m_dead);
+	pthread_mutex_lock(&p->prm->m_eat);
+	if (p->prm->dead && i)
 		printf("%ld %d died\n", timestamp(), p->id + --i);
-	else if (state == FORK && !p->param->dead && (p->param->rep == -1
-			|| p->param->eat_count / p->param->count < p->param->rep))
+	else if (state == FORK && !p->prm->dead && (p->prm->rep == -1
+			|| p->prm->c_eat / p->prm->count < p->prm->rep))
 		printf("%ld %d has taken a fork\n", timestamp(), p->id);
-	else if (state == EAT && !p->param->dead && (p->param->rep == -1
-			|| p->param->eat_count / p->param->count < p->param->rep))
+	else if (state == EAT && !p->prm->dead && (p->prm->rep == -1
+			|| p->prm->c_eat / p->prm->count < p->prm->rep))
 		printf("%ld %d is eating\n", timestamp(), p->id);
-	else if (state == SLEEP && !p->param->dead && (p->param->rep == -1
-			|| p->param->eat_count / p->param->count < p->param->rep))
+	else if (state == SLEEP && !p->prm->dead && (p->prm->rep == -1
+			|| p->prm->c_eat / p->prm->count < p->prm->rep))
 		printf("%ld %d is sleeping\n", timestamp(), p->id);
-	else if (state == THINK && !p->param->dead && (p->param->rep == -1
-			|| p->param->eat_count / p->param->count < p->param->rep))
+	else if (state == THINK && !p->prm->dead && (p->prm->rep == -1
+			|| p->prm->c_eat / p->prm->count < p->prm->rep))
 		printf("%ld %d is thinking\n", timestamp(), p->id);
-	pthread_mutex_unlock(&p->param->m_write);
-	pthread_mutex_unlock(&p->param->m_dead);
+	pthread_mutex_unlock(&p->prm->m_write);
+	pthread_mutex_unlock(&p->prm->m_dead);
+	pthread_mutex_unlock(&p->prm->m_eat);
 }

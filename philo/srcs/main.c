@@ -18,7 +18,7 @@ void	launch(t_philo *philo)
 	int			i;
 	int			count;
 
-	count = philo->param->count;
+	count = philo->prm->count;
 	t = malloc(sizeof(pthread_t) * count);
 	if (!t)
 		return ;
@@ -35,11 +35,11 @@ void	launch(t_philo *philo)
 
 int	main(int argc, char **argv)
 {
-	t_param		param;
+	t_prm		prm;
 	t_philo		*philo;
 
 	start_time(1);
-	init(&philo, &param, argc, argv);
+	init(&philo, &prm, argc, argv);
 	launch(philo);
 	destroy(philo);
 	return (0);
