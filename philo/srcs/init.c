@@ -18,6 +18,21 @@ void	quit(t_philo *philo)
 	pthread_mutex_destroy(&philo->prm->m_dead);
 }
 
+void	destroy_count(t_philo *philo, int count)
+{
+	int	i;
+
+	pthread_mutex_destroy(&philo->prm->m_write);
+	pthread_mutex_destroy(&philo->prm->m_dead);
+	i = -1;
+	while (++i < count)
+		pthread_mutex_destroy(philo[i].m_rf);
+	i = -1;
+	while (++i < count)
+		free(philo[i].m_rf);
+	free(philo);
+}
+
 void	destroy(t_philo *philo)
 {
 	int	i;
@@ -33,7 +48,7 @@ void	destroy(t_philo *philo)
 	free(philo);
 }
 
-static void	init_prm(t_prm *prm, int argc, char **argv)
+void	init_prm(t_prm *prm, int argc, char **argv)
 {
 	if (argc != 5 && argc != 6)
 		error("Invalid arguments : ./philo N_PHILO TIME_TO_DIE TIME_TO_EAT "
@@ -60,13 +75,12 @@ static void	init_prm(t_prm *prm, int argc, char **argv)
 	pthread_mutex_init(&prm->m_dead, NULL);
 }
 
-void	init(t_philo **philo, t_prm *prm, int argc, char **argv)
+void	init(t_philo **philo, t_prm *prm)
 {
 	int				i;
 	int				count;
 	size_t			time;
 
-	init_prm(prm, argc, argv);
 	count = prm->count;
 	time = timestamp();
 	*philo = malloc(sizeof(t_philo) * count);
@@ -77,7 +91,7 @@ void	init(t_philo **philo, t_prm *prm, int argc, char **argv)
 	{
 		(*philo)[i].m_rf = malloc(sizeof(pthread_mutex_t));
 		if (!(*philo)[i].m_rf)
-			return ;
+			break ;
 		pthread_mutex_init((*philo)[i].m_rf, NULL);
 		if (count > 1)
 			(*philo)[(i + 1) % count].m_lf = (*philo)[i].m_rf;
@@ -86,4 +100,6 @@ void	init(t_philo **philo, t_prm *prm, int argc, char **argv)
 		(*philo)[i].eat = 0;
 		(*philo)[i].last_eat = time;
 	}
+	if (i < count)
+		destroy_count(*philo, i);
 }

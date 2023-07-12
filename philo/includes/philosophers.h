@@ -53,7 +53,8 @@ typedef struct s_philo
 
 // INIT
 void	destroy(t_philo *philo);
-void	init(t_philo **philo, t_prm *prm, int argc, char **argv);
+void	init_prm(t_prm *prm, int argc, char **argv);
+void	init(t_philo **philo, t_prm *prm);
 
 // TIMESTAMP
 size_t	start_time(int n);
