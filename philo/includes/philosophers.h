@@ -35,17 +35,16 @@ typedef struct s_prm
 	uint32_t		e_time;
 	uint32_t		s_time;
 	uint32_t		d_time;
-	int32_t			c_eat;
 	int32_t			rep;
 	bool			dead;
 	pthread_mutex_t	m_write;
 	pthread_mutex_t	m_dead;
-	pthread_mutex_t	m_eat;
 }	t_prm;
 
 typedef struct s_philo
 {
 	uint32_t		id;
+	int				eat;
 	size_t			last_eat;
 	pthread_mutex_t	*m_rf;
 	pthread_mutex_t	*m_lf;

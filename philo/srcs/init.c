@@ -16,7 +16,6 @@ void	quit(t_philo *philo)
 {
 	pthread_mutex_destroy(&philo->prm->m_write);
 	pthread_mutex_destroy(&philo->prm->m_dead);
-	pthread_mutex_destroy(&philo->prm->m_eat);
 }
 
 void	destroy(t_philo *philo)
@@ -25,7 +24,6 @@ void	destroy(t_philo *philo)
 
 	pthread_mutex_destroy(&philo->prm->m_write);
 	pthread_mutex_destroy(&philo->prm->m_dead);
-	pthread_mutex_destroy(&philo->prm->m_eat);
 	i = -1;
 	while (++i < philo->prm->count)
 		pthread_mutex_destroy(philo[i].m_rf);
@@ -58,10 +56,8 @@ static void	init_prm(t_prm *prm, int argc, char **argv)
 	if (prm->rep == 0)
 		error("Invalid argument");
 	prm->dead = false;
-	prm->c_eat = 0;
 	pthread_mutex_init(&prm->m_write, NULL);
 	pthread_mutex_init(&prm->m_dead, NULL);
-	pthread_mutex_init(&prm->m_eat, NULL);
 }
 
 void	init(t_philo **philo, t_prm *prm, int argc, char **argv)
@@ -87,6 +83,7 @@ void	init(t_philo **philo, t_prm *prm, int argc, char **argv)
 			(*philo)[(i + 1) % count].m_lf = (*philo)[i].m_rf;
 		(*philo)[i].id = i + 1;
 		(*philo)[i].prm = prm;
+		(*philo)[i].eat = 0;
 		(*philo)[i].last_eat = time;
 	}
 }
