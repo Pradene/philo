@@ -24,7 +24,7 @@ int	ft_atoi(const char *s)
 
 	n = 0;
 	i = -1;
-	while (s[++i])
+	while (s && s[++i])
 	{
 		if (!is_digit(s[i]))
 			return (0);
