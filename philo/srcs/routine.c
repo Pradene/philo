@@ -60,10 +60,10 @@ static void	eat(t_philo *p)
 	}
 	lock_fork(p, 0);
 	print(p, FORK);
-	p->last_eat = timestamp();
 	print(p, EAT);
 	p->eat++;
 	wait(p, p->prm->e_time);
+	p->last_eat = timestamp();
 	pthread_mutex_unlock(p->m_lf);
 	pthread_mutex_unlock(p->m_rf);
 }
