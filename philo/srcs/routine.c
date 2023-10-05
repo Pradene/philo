@@ -60,10 +60,17 @@ static void	eat(t_philo *p)
 	}
 	lock_fork(p, 0);
 	print(p, FORK);
+	if (timestamp() - p->last_eat >= p->prm->d_time)
+	{
+		pthread_mutex_lock(&p->prm->m_dead);
+		p->prm->dead = true;
+		pthread_mutex_unlock(&p->prm->m_dead);
+		return ;
+	}
+	p->last_eat = timestamp();
 	print(p, EAT);
 	p->eat++;
 	wait(p, p->prm->e_time);
-	p->last_eat = timestamp();
 	pthread_mutex_unlock(p->m_lf);
 	pthread_mutex_unlock(p->m_rf);
 }
@@ -73,6 +80,8 @@ void	*routine(void *philo)
 	t_philo	*p;
 
 	p = (t_philo *)philo;
+	if ((p->id + 1) % 2)
+		wait(p, p->prm->e_time / 2);
 	while (1)
 	{
 		pthread_mutex_lock(&p->prm->m_dead);
@@ -88,6 +97,8 @@ void	*routine(void *philo)
 		print(p, SLEEP);
 		wait(p, p->prm->s_time);
 		print(p, THINK);
+		if (p->prm->count % 2)
+			wait(p, p->prm->e_time);
 	}
 	return (NULL);
 }
