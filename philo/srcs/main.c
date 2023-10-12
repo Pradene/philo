@@ -109,7 +109,8 @@ int	main(int argc, char **argv)
 		return (1);
 	if (init_prm(&prm, argc, argv))
 		return (1);
-	init(&p, &prm);
+	if (init(&p, &prm))
+		return (1);
 	if (launch(&prm, p))
 		return (1);
 	destroy(p);

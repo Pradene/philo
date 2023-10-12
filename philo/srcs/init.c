@@ -92,13 +92,13 @@ int	init_prm(t_prm *prm, int argc, char **argv)
 	return (0);
 }
 
-void	init(t_philo **philo, t_prm *prm)
+int	init(t_philo **philo, t_prm *prm)
 {
 	int	i;
 
 	*philo = malloc(sizeof(t_philo) * prm->count);
 	if (!(*philo))
-		return (quit(prm));
+		return (quit(prm), 1);
 	i = -1;
 	while (++i < prm->count)
 	{
@@ -114,5 +114,9 @@ void	init(t_philo **philo, t_prm *prm)
 		(*philo)[i].eat = 0;
 	}
 	if (i < prm->count)
+	{
 		destroy_count(*philo, i);
+		return (1);
+	}
+	return (0);
 }
