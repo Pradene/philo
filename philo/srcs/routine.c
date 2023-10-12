@@ -77,7 +77,7 @@ static int	eat(t_philo *p)
 	return (0);
 }
 
-void	wait_threads(t_prm *prm)
+void	wait_threads(t_philo *p, t_prm *prm)
 {
 	pthread_mutex_lock(&prm->m_started);
 	prm->started++;
@@ -87,6 +87,9 @@ void	wait_threads(t_prm *prm)
 		pthread_mutex_lock(&prm->m_started);
 		if (prm->started == prm->count)
 		{
+			pthread_mutex_lock(&p->m_lasteat);
+			p->last_eat = timestamp();
+			pthread_mutex_unlock(&p->m_lasteat);
 			pthread_mutex_unlock(&prm->m_started);
 			return ;
 		}
@@ -100,7 +103,7 @@ void	*routine(void *philo)
 	t_philo	*p;
 
 	p = (t_philo *)philo;
-	wait_threads(p->prm);
+	wait_threads(p, p->prm);
 	if ((p->id + 1) % 2)
 		wait(p, p->prm->e_time / 2);
 	while (1)

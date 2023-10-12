@@ -63,6 +63,7 @@ int	launch(t_prm *prm, t_philo *p)
 	t = malloc(sizeof(pthread_t) * count);
 	if (!t)
 		return (1);
+	start_time(1);
 	i = -1;
 	while (++i < count)
 		if (pthread_create(&t[i], NULL, &routine, &p[i]))
@@ -81,7 +82,6 @@ int	main(int argc, char **argv)
 	t_prm		prm;
 	t_philo		*p;
 
-	start_time(1);
 	prm.dead = false;
 	prm.started = 0;
 	prm.finished = 0;

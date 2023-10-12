@@ -16,6 +16,7 @@ void	quit(t_prm *prm)
 {
 	pthread_mutex_destroy(&prm->m_write);
 	pthread_mutex_destroy(&prm->m_finished);
+	pthread_mutex_destroy(&prm->m_started);
 	pthread_mutex_destroy(&prm->m_dead);
 }
 
@@ -25,6 +26,7 @@ void	destroy_count(t_philo *philo, int count)
 
 	pthread_mutex_destroy(&philo->prm->m_write);
 	pthread_mutex_destroy(&philo->prm->m_finished);
+	pthread_mutex_destroy(&philo->prm->m_started);
 	pthread_mutex_destroy(&philo->prm->m_dead);
 	i = -1;
 	while (++i < count)
@@ -41,6 +43,7 @@ void	destroy(t_philo *philo)
 
 	pthread_mutex_destroy(&philo->prm->m_write);
 	pthread_mutex_destroy(&philo->prm->m_finished);
+	pthread_mutex_destroy(&philo->prm->m_started);
 	pthread_mutex_destroy(&philo->prm->m_dead);
 	i = -1;
 	while (++i < philo->prm->count)
@@ -85,10 +88,8 @@ int	init_prm(t_prm *prm, int argc, char **argv)
 
 void	init(t_philo **philo, t_prm *prm)
 {
-	int				i;
-	size_t			time;
+	int	i;
 
-	time = timestamp();
 	*philo = malloc(sizeof(t_philo) * prm->count);
 	if (!(*philo))
 		return (quit(prm));
@@ -105,7 +106,6 @@ void	init(t_philo **philo, t_prm *prm)
 		(*philo)[i].id = i + 1;
 		(*philo)[i].prm = prm;
 		(*philo)[i].eat = 0;
-		(*philo)[i].last_eat = time;
 	}
 	if (i < prm->count)
 		destroy_count(*philo, i);

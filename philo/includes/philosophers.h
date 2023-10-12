@@ -40,7 +40,7 @@ typedef struct s_prm
 	int				finished;
 	int				started;
 	bool			dead;
-	pthread_mutex_t m_started;
+	pthread_mutex_t	m_started;
 	pthread_mutex_t	m_finished;
 	pthread_mutex_t	m_write;
 	pthread_mutex_t	m_dead;
