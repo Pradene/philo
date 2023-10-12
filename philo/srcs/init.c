@@ -30,39 +30,45 @@ void	destroy_count(t_philo *philo, int count)
 	pthread_mutex_destroy(&philo->prm->m_dead);
 	i = -1;
 	while (++i < count)
+	{
 		pthread_mutex_destroy(philo[i].m_rf);
+		pthread_mutex_destroy(&philo[i].m_lasteat);
+	}
 	i = -1;
 	while (++i < count)
 		free(philo[i].m_rf);
 	free(philo);
 }
 
-void	destroy(t_philo *philo)
+int	init_mutex(t_prm *prm)
 {
-	int	i;
-
-	pthread_mutex_destroy(&philo->prm->m_write);
-	pthread_mutex_destroy(&philo->prm->m_finished);
-	pthread_mutex_destroy(&philo->prm->m_started);
-	pthread_mutex_destroy(&philo->prm->m_dead);
-	i = -1;
-	while (++i < philo->prm->count)
+	if (pthread_mutex_init(&prm->m_dead, NULL))
 	{
-		pthread_mutex_destroy(philo[i].m_rf);
-		pthread_mutex_destroy(&philo[i].m_lasteat);
+		return (1);
 	}
-	i = -1;
-	while (++i < philo->prm->count)
-		free(philo[i].m_rf);
-	free(philo);
+	if (pthread_mutex_init(&prm->m_started, NULL))
+	{
+		pthread_mutex_destroy(&prm->m_dead);
+		return (1);
+	}
+	if (pthread_mutex_init(&prm->m_finished, NULL))
+	{
+		pthread_mutex_destroy(&prm->m_dead);
+		pthread_mutex_destroy(&prm->m_started);
+		return (1);
+	}
+	if (pthread_mutex_init(&prm->m_write, NULL))
+	{
+		pthread_mutex_destroy(&prm->m_dead);
+		pthread_mutex_destroy(&prm->m_started);
+		pthread_mutex_destroy(&prm->m_finished);
+		return (1);
+	}
+	return (0);
 }
 
 int	init_prm(t_prm *prm, int argc, char **argv)
 {
-	pthread_mutex_init(&prm->m_dead, NULL);
-	pthread_mutex_init(&prm->m_started, NULL);
-	pthread_mutex_init(&prm->m_finished, NULL);
-	pthread_mutex_init(&prm->m_write, NULL);
 	if (argc != 5 && argc != 6)
 		return (printf("Arguments : ./philo N_PHILO DIE_TIME "\
 		"EAT_TIME SLEEP_TIME [REP]\n"), 1);

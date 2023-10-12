@@ -59,6 +59,7 @@ typedef struct s_philo
 
 // INIT
 void	destroy(t_philo *philo);
+int		init_mutex(t_prm *prm);
 int		init_prm(t_prm *prm, int argc, char **argv);
 void	init(t_philo **philo, t_prm *prm);
 

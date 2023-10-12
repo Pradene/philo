@@ -12,6 +12,26 @@
 
 #include "../includes/philosophers.h"
 
+void	destroy(t_philo *philo)
+{
+	int	i;
+
+	pthread_mutex_destroy(&philo->prm->m_write);
+	pthread_mutex_destroy(&philo->prm->m_finished);
+	pthread_mutex_destroy(&philo->prm->m_started);
+	pthread_mutex_destroy(&philo->prm->m_dead);
+	i = -1;
+	while (++i < philo->prm->count)
+	{
+		pthread_mutex_destroy(philo[i].m_rf);
+		pthread_mutex_destroy(&philo[i].m_lasteat);
+	}
+	i = -1;
+	while (++i < philo->prm->count)
+		free(philo[i].m_rf);
+	free(philo);
+}
+
 int	check_death(t_prm *prm, t_philo *p)
 {
 	pthread_mutex_lock(&p->m_lasteat);
@@ -85,6 +105,8 @@ int	main(int argc, char **argv)
 	prm.dead = false;
 	prm.started = 0;
 	prm.finished = 0;
+	if (init_mutex(&prm))
+		return (1);
 	if (init_prm(&prm, argc, argv))
 		return (1);
 	init(&p, &prm);
