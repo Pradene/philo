@@ -12,36 +12,84 @@
 
 #include "../includes/philosophers.h"
 
-void	launch(t_philo *philo)
+int	check_death(t_prm *prm, t_philo *p)
+{
+	pthread_mutex_lock(&p->m_lasteat);
+	if (timestamp() - p->last_eat >= prm->d_time)
+	{
+		pthread_mutex_unlock(&p->m_lasteat);
+		pthread_mutex_lock(&prm->m_write);
+		printf("%zu %d died\n", timestamp(), p->id);
+		pthread_mutex_unlock(&prm->m_write);
+		pthread_mutex_lock(&prm->m_dead);
+		prm->dead = true;
+		pthread_mutex_unlock(&prm->m_dead);
+		return (1);
+	}
+	pthread_mutex_unlock(&p->m_lasteat);
+	return (0);
+}
+
+void	monitoring(t_prm *prm, t_philo *p)
+{
+	int	i;
+
+	while (1)
+	{
+		i = -1;
+		while (++i < prm->count)
+		{
+			pthread_mutex_lock(&prm->m_finished);
+			if (prm->finished == prm->count)
+			{
+				pthread_mutex_unlock(&prm->m_finished);
+				return ;
+			}
+			pthread_mutex_unlock(&prm->m_finished);
+			if (check_death(prm, &p[i]))
+				return ;
+			usleep(100);
+		}
+	}
+}
+
+int	launch(t_prm *prm, t_philo *p)
 {
 	pthread_t	*t;
 	int			i;
 	int			count;
 
-	count = philo->prm->count;
+	count = prm->count;
 	t = malloc(sizeof(pthread_t) * count);
 	if (!t)
-		return ;
+		return (1);
 	i = -1;
 	while (++i < count)
-		if (pthread_create(&t[i], NULL, &routine, &philo[i]))
-			exit(EXIT_FAILURE);
+		if (pthread_create(&t[i], NULL, &routine, &p[i]))
+			return (1);
+	monitoring(prm, p);
 	i = -1;
 	while (++i < count)
 		if (pthread_join(t[i], NULL))
-			exit(EXIT_FAILURE);
+			return (1);
 	free(t);
+	return (0);
 }
 
 int	main(int argc, char **argv)
 {
 	t_prm		prm;
-	t_philo		*philo;
+	t_philo		*p;
 
 	start_time(1);
-	init_prm(&prm, argc, argv);
-	init(&philo, &prm);
-	launch(philo);
-	destroy(philo);
+	prm.dead = false;
+	prm.started = 0;
+	prm.finished = 0;
+	if (init_prm(&prm, argc, argv))
+		return (1);
+	init(&p, &prm);
+	if (launch(&prm, p))
+		return (1);
+	destroy(p);
 	return (0);
 }

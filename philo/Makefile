@@ -1,5 +1,5 @@
 FILES	= utils/atoi.c \
-		utils/error.c \
+		utils/overflow.c \
 		init.c \
 		main.c \
 		print.c \

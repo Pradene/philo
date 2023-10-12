@@ -26,26 +26,32 @@ typedef enum e_state
 	FORK,
 	EAT,
 	SLEEP,
-	THINK
+	THINK,
+	DEAD
 }	t_state;
 
 typedef struct s_prm
 {
-	int32_t			count;
-	uint32_t		e_time;
-	uint32_t		s_time;
-	uint32_t		d_time;
-	int32_t			rep;
+	int				count;
+	size_t			e_time;
+	size_t			s_time;
+	size_t			d_time;
+	int				rep;
+	int				finished;
+	int				started;
 	bool			dead;
+	pthread_mutex_t m_started;
+	pthread_mutex_t	m_finished;
 	pthread_mutex_t	m_write;
 	pthread_mutex_t	m_dead;
 }	t_prm;
 
 typedef struct s_philo
 {
-	uint32_t		id;
+	int				id;
 	int				eat;
 	size_t			last_eat;
+	pthread_mutex_t	m_lasteat;
 	pthread_mutex_t	*m_rf;
 	pthread_mutex_t	*m_lf;
 	t_prm			*prm;
@@ -53,7 +59,7 @@ typedef struct s_philo
 
 // INIT
 void	destroy(t_philo *philo);
-void	init_prm(t_prm *prm, int argc, char **argv);
+int		init_prm(t_prm *prm, int argc, char **argv);
 void	init(t_philo **philo, t_prm *prm);
 
 // TIMESTAMP
@@ -64,10 +70,10 @@ size_t	timestamp(void);
 void	print(t_philo *philo, t_state state);
 
 // ROUTINE
-void	*routine(void *philo);
+void	*routine(void *p);
 
 // UTILS
 int		ft_atoi(const char *s);
-void	error(char *s);
+int		overflow(char *str, int n);
 
 #endif

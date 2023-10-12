@@ -10,6 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "../../includes/philosophers.h"
+
 static int	is_digit(char c)
 {
 	if (c >= '0' && c <= '9')
@@ -30,5 +32,7 @@ int	ft_atoi(const char *s)
 			return (0);
 		n = n * 10 + s[i] - 48;
 	}
+	if (n < 0)
+		return (0);
 	return (n);
 }
