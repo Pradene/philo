@@ -73,26 +73,41 @@ void	monitoring(t_prm *prm, t_philo *p)
 	}
 }
 
+void	pthread_quit(pthread_t *t, int count)
+{
+	int	i;
+
+	i = -1;
+	while (++i < count)
+	{
+		if (pthread_join(t[i], NULL))
+			return ;
+	}
+}
+
 int	launch(t_prm *prm, t_philo *p)
 {
 	pthread_t	*t;
 	int			i;
-	int			count;
 
-	count = prm->count;
-	t = malloc(sizeof(pthread_t) * count);
+	t = malloc(sizeof(pthread_t) * prm->count);
 	if (!t)
 		return (1);
-	start_time(1);
 	i = -1;
-	while (++i < count)
+	pthread_mutex_lock(&prm->m_started);
+	while (++i < prm->count)
+	{
 		if (pthread_create(&t[i], NULL, &routine, &p[i]))
-			return (1);
+		{
+			pthread_mutex_unlock(&prm->m_started);
+			pthread_quit(t, i);
+			return (destroy(p), free(t), 1);
+		}
+		prm->started++;
+	}
+	pthread_mutex_unlock(&prm->m_started);
 	monitoring(prm, p);
-	i = -1;
-	while (++i < count)
-		if (pthread_join(t[i], NULL))
-			return (1);
+	pthread_quit(t, prm->count);
 	free(t);
 	return (0);
 }
@@ -109,6 +124,7 @@ int	main(int argc, char **argv)
 		return (1);
 	if (init_prm(&prm, argc, argv))
 		return (1);
+	start_time(1);
 	if (init(&p, &prm))
 		return (1);
 	if (launch(&prm, p))

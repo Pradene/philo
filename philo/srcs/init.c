@@ -33,10 +33,8 @@ void	destroy_count(t_philo *philo, int count)
 	{
 		pthread_mutex_destroy(philo[i].m_rf);
 		pthread_mutex_destroy(&philo[i].m_lasteat);
-	}
-	i = -1;
-	while (++i < count)
 		free(philo[i].m_rf);
+	}
 	free(philo);
 }
 
@@ -92,31 +90,42 @@ int	init_prm(t_prm *prm, int argc, char **argv)
 	return (0);
 }
 
-int	init(t_philo **philo, t_prm *prm)
+int	init_philo(t_philo **p, t_prm *prm, int index)
+{
+	(*p)[index].m_rf = malloc(sizeof(pthread_mutex_t));
+	if (!(*p)[index].m_rf)
+		return (1);
+	if (pthread_mutex_init((*p)[index].m_rf, NULL))
+		return (free((*p)[index].m_rf), 1);
+	if (pthread_mutex_init(&(*p)[index].m_lasteat, NULL))
+	{
+		pthread_mutex_destroy((*p)[index].m_rf);
+		return (free((*p)[index].m_rf), 1);
+	}
+	if (prm->count > 1)
+		(*p)[(index + 1) % prm->count].m_lf = (*p)[index].m_rf;
+	(*p)[index].id = index + 1;
+	(*p)[index].prm = prm;
+	(*p)[index].eat = 0;
+	(*p)[index].last_eat = timestamp();
+	return (0);
+}
+
+int	init(t_philo **p, t_prm *prm)
 {
 	int	i;
 
-	*philo = malloc(sizeof(t_philo) * prm->count);
-	if (!(*philo))
+	*p = malloc(sizeof(t_philo) * prm->count);
+	if (!(*p))
 		return (quit(prm), 1);
 	i = -1;
 	while (++i < prm->count)
 	{
-		(*philo)[i].m_rf = malloc(sizeof(pthread_mutex_t));
-		if (!(*philo)[i].m_rf)
-			break ;
-		pthread_mutex_init((*philo)[i].m_rf, NULL);
-		pthread_mutex_init(&(*philo)[i].m_lasteat, NULL);
-		if (prm->count > 1)
-			(*philo)[(i + 1) % prm->count].m_lf = (*philo)[i].m_rf;
-		(*philo)[i].id = i + 1;
-		(*philo)[i].prm = prm;
-		(*philo)[i].eat = 0;
-	}
-	if (i < prm->count)
-	{
-		destroy_count(*philo, i);
-		return (1);
+		if (init_philo(p, prm, i))
+		{
+			destroy_count(*p, i);
+			return (1);
+		}
 	}
 	return (0);
 }
