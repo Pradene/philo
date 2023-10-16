@@ -77,4 +77,12 @@ void	*routine(void *p);
 int		ft_atoi(const char *s);
 int		overflow(char *str, int n);
 
+// LAUNCH
+int		launch(t_prm *prm, t_philo *p);
+
+// DESTROY
+void	destroy_mutex(t_prm *prm);
+void	destroy_count(t_philo *philo, int count);
+void	destroy(t_philo *philo);
+
 #endif

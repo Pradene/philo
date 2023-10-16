@@ -12,32 +12,6 @@
 
 #include "../includes/philosophers.h"
 
-void	quit(t_prm *prm)
-{
-	pthread_mutex_destroy(&prm->m_write);
-	pthread_mutex_destroy(&prm->m_finished);
-	pthread_mutex_destroy(&prm->m_started);
-	pthread_mutex_destroy(&prm->m_dead);
-}
-
-void	destroy_count(t_philo *philo, int count)
-{
-	int	i;
-
-	pthread_mutex_destroy(&philo->prm->m_write);
-	pthread_mutex_destroy(&philo->prm->m_finished);
-	pthread_mutex_destroy(&philo->prm->m_started);
-	pthread_mutex_destroy(&philo->prm->m_dead);
-	i = -1;
-	while (++i < count)
-	{
-		pthread_mutex_destroy(philo[i].m_rf);
-		pthread_mutex_destroy(&philo[i].m_lasteat);
-		free(philo[i].m_rf);
-	}
-	free(philo);
-}
-
 int	init_mutex(t_prm *prm)
 {
 	if (pthread_mutex_init(&prm->m_dead, NULL))
@@ -117,7 +91,7 @@ int	init(t_philo **p, t_prm *prm)
 
 	*p = malloc(sizeof(t_philo) * prm->count);
 	if (!(*p))
-		return (quit(prm), 1);
+		return (destroy_mutex(prm), 1);
 	i = -1;
 	while (++i < prm->count)
 	{

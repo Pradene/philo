@@ -1,6 +1,8 @@
 FILES	= utils/atoi.c \
 		utils/overflow.c \
+		destroy.c \
 		init.c \
+		launch.c \
 		main.c \
 		print.c \
 		routine.c \
