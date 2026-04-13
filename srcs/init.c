@@ -1,105 +1,145 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   init.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: lpradene <marvin@42.fr>                    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/02/06 12:45:47 by lpradene          #+#    #+#             */
-/*   Updated: 2023/02/06 12:46:15 by lpradene         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#include "../includes/philo.h"
 
-#include "../includes/philosophers.h"
-
-int	init_mutex(t_prm *prm)
-{
-	if (pthread_mutex_init(&prm->m_dead, NULL))
-	{
-		return (1);
-	}
-	if (pthread_mutex_init(&prm->m_started, NULL))
-	{
-		pthread_mutex_destroy(&prm->m_dead);
-		return (1);
-	}
-	if (pthread_mutex_init(&prm->m_finished, NULL))
-	{
-		pthread_mutex_destroy(&prm->m_dead);
-		pthread_mutex_destroy(&prm->m_started);
-		return (1);
-	}
-	if (pthread_mutex_init(&prm->m_write, NULL))
-	{
-		pthread_mutex_destroy(&prm->m_dead);
-		pthread_mutex_destroy(&prm->m_started);
-		pthread_mutex_destroy(&prm->m_finished);
-		return (1);
-	}
-	return (0);
+static int  is_digit(char c) {
+    return (c >= '0' && c <= '9');
 }
-
-int	init_prm(t_prm *prm, int argc, char **argv)
-{
-	if (argc != 5 && argc != 6)
-		return (printf("Arguments : ./philo N_PHILO DIE_TIME "\
-		"EAT_TIME SLEEP_TIME [REP]\n"), 1);
-	prm->count = ft_atoi(argv[1]);
-	if (prm->count <= 0 || prm->count > 200 || overflow(argv[1], prm->count))
-		return (printf("Argument : N_PHILO must be between 1 and 200\n"), 1);
-	prm->d_time = ft_atoi(argv[2]);
-	if (prm->d_time <= 0 || overflow(argv[2], prm->d_time))
-		return (printf("Argument : DIE_TIME must be an unsigned int\n"), 1);
-	prm->e_time = ft_atoi(argv[3]);
-	if (prm->e_time <= 0 || overflow(argv[3], prm->e_time))
-		return (printf("Argument : EAT_TIME must be an unsigned int\n"), 1);
-	prm->s_time = ft_atoi(argv[4]);
-	if (prm->s_time <= 0 || overflow(argv[4], prm->s_time))
-		return (printf("Argument : SLEEP_TIME must be an unsigned int\n"), 1);
-	prm->rep = -1;
-	if (argc == 6)
-		prm->rep = ft_atoi(argv[5]);
-	if (prm->rep == 0 || (argc == 6 && overflow(argv[5], prm->rep)))
-		return (printf("Argument : REP must be an unsigned int\n"), 1);
-	return (0);
-}
-
-int	init_philo(t_philo **p, t_prm *prm, int index)
-{
-	(*p)[index].m_rf = malloc(sizeof(pthread_mutex_t));
-	if (!(*p)[index].m_rf)
-		return (1);
-	if (pthread_mutex_init((*p)[index].m_rf, NULL))
-		return (free((*p)[index].m_rf), 1);
-	if (pthread_mutex_init(&(*p)[index].m_lasteat, NULL))
-	{
-		pthread_mutex_destroy((*p)[index].m_rf);
-		return (free((*p)[index].m_rf), 1);
-	}
-	if (prm->count > 1)
-		(*p)[(index + 1) % prm->count].m_lf = (*p)[index].m_rf;
-	(*p)[index].id = index + 1;
-	(*p)[index].prm = prm;
-	(*p)[index].eat = 0;
-	(*p)[index].last_eat = timestamp();
-	return (0);
-}
-
-int	init(t_philo **p, t_prm *prm)
-{
-	int	i;
-
-	*p = malloc(sizeof(t_philo) * prm->count);
-	if (!(*p))
-		return (destroy_mutex(prm), 1);
-	i = -1;
-	while (++i < prm->count)
-	{
-		if (init_philo(p, prm, i))
-		{
-			destroy_count(*p, i);
-			return (1);
+ 
+static int	ft_atoi(const char *s) {
+    long    n;
+    int     i;
+ 
+    n = 0;
+    i = 0;
+    while (s && s[i]) {
+        if (!is_digit(s[i])) {
+            return (0);
 		}
+        n = n * 10 + s[i++] - '0';
+        if (n > INT_MAX) {
+            return (-1);
+		}
+    }
+    return ((int)n);
+}
+
+static int  parse_positive_int(const char *str, const char *name, int max) {
+    int val = ft_atoi(str);
+ 
+    if (val <= 0) {
+        fprintf(stderr, "Error: '%s' must be a positive integer\n", name);
+        return (-1);
+    } else if (max > 0 && val > max) {
+        fprintf(stderr, "Error: '%s' must be <= %d\n", name, max);
+        return (-1);
+    } else {
+		return (val);
 	}
+}
+
+static int  parse_args(Simulation *s, int argc, char **argv) {
+    if (argc != 5 && argc != 6) {
+        fprintf(stderr, "Usage: ./philo N_PHILO DIE_TIME EAT_TIME SLEEP_TIME [REP]\n");
+        return (-1);
+    }
+
+    s->count         = parse_positive_int(argv[1], "N_PHILO",   200);
+    s->time_to_die   = parse_positive_int(argv[2], "DIE_TIME",  0);
+    s->time_to_eat   = parse_positive_int(argv[3], "EAT_TIME",  0);
+    s->time_to_sleep = parse_positive_int(argv[4], "SLEEP_TIME",0);
+    s->rep           = (argc == 6) ? parse_positive_int(argv[5], "REP", 0) : -1;
+
+	if (s->count < 0 || s->time_to_die < 0 || s->time_to_eat < 0 || s->time_to_sleep < 0 || s->rep == 0) {
+        return (-1);
+	}
+
 	return (0);
+}
+
+static int  init_mutexes(pthread_mutex_t **mutexes, int count) {
+    for (int i = 0; i < count; i++) {
+        if (pthread_mutex_init(mutexes[i], NULL) != 0) {
+            while (--i >= 0) {
+                pthread_mutex_destroy(mutexes[i]);
+			}
+            return (-1);
+        }
+    }
+    return (0);
+}
+
+static int  init_simulation_mutexes(Simulation *s) {
+    pthread_mutex_t *mutexes[] = {
+        &s->m_dead,
+        &s->m_started,
+        &s->m_finished,
+        &s->m_write,
+    };
+    return (init_mutexes(mutexes, 4));
+}
+
+static int  init_philo_mutexes(Philo *p) {
+    p->right_fork = malloc(sizeof(pthread_mutex_t));
+    if (!p->right_fork) {
+        return (-1);
+	}
+
+    pthread_mutex_t *mutexes[] = {
+		p->right_fork,
+		&p->m_lasteat
+	};
+    if (init_mutexes(mutexes, 2) != 0) {
+        free(p->right_fork);
+		p->right_fork = NULL;
+		return (-1);
+	}
+    return (0);
+}
+
+static void link_forks(Philo *philos, int count) {
+    for (int i = 0; i < count; i++) {
+        philos[(i + 1) % count].left_fork = philos[i].right_fork;
+	}
+}
+
+static int  init_philo(Philo *p, Simulation *s, int id) {
+    if (init_philo_mutexes(p) != 0) {
+        return (-1);
+	}
+    p->id       = id + 1;
+    p->sim      = s;
+    p->eat      = 0;
+    p->last_eat = timestamp();
+    return (0);
+}
+
+Philo   *init_philos(Simulation *s) {
+    Philo *philos = calloc(s->count, sizeof(Philo));
+    if (!philos) {
+        return (NULL);
+	}
+
+    for (int i = 0; i < s->count; i++) {
+        if (init_philo(&philos[i], s, i) != 0) {
+            destroy_philos(philos, i);
+            return (NULL);
+        }
+    }
+    if (s->count > 1) {
+        link_forks(philos, s->count);
+	}
+    return (philos);
+}
+
+Simulation  *init_simulation(int argc, char **argv) {
+    Simulation *sim = calloc(1, sizeof(Simulation));
+    if (sim == NULL) {
+        return (NULL);
+	}
+
+    if (parse_args(sim, argc, argv) != 0 || init_simulation_mutexes(sim) != 0) {
+        free(sim);
+        return (NULL);
+    }
+
+    return (sim);
 }

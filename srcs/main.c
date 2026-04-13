@@ -1,34 +1,22 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: lpradene <marvin@42.fr>                    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/02/06 12:46:38 by lpradene          #+#    #+#             */
-/*   Updated: 2023/02/06 12:47:39 by lpradene         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#include "../includes/philo.h"
 
-#include "../includes/philosophers.h"
+int	main(int argc, char **argv) {
+	Simulation	*sim;
+	Philo		*philos;
 
-int	main(int argc, char **argv)
-{
-	t_prm		prm;
-	t_philo		*p;
-
-	prm.dead = false;
-	prm.started = 0;
-	prm.finished = 0;
-	if (init_mutex(&prm))
+	sim = init_simulation(argc, argv);
+	if (!sim) {
 		return (1);
-	if (init_prm(&prm, argc, argv))
-		return (1);
+	}
 	start_time(1);
-	if (init(&p, &prm))
+	philos = init_philos(sim);
+	if (!philos) {
 		return (1);
-	if (launch(&prm, p))
+	}
+	if (launch(sim, philos)) {
 		return (1);
-	destroy(p);
+	}
+	destroy_simulation(philos);
+	free(sim);
 	return (0);
 }

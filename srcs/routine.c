@@ -1,119 +1,96 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   routine.c                                          :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: lpradene <marvin@42.fr>                    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/02/10 03:21:44 by lpradene          #+#    #+#             */
-/*   Updated: 2023/02/10 03:21:45 by lpradene         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#include "../includes/philo.h"
 
-#include "../includes/philosophers.h"
-
-static void	wait(t_philo *p, size_t time)
-{
+static void	wait(Philo *p, size_t time) {
 	size_t	i;
 
 	i = 0;
-	while (++i <= time / 10)
-	{
+	while (++i <= time / 10) {
 		usleep(1 * 1000 * 10);
-		pthread_mutex_lock(&p->prm->m_dead);
-		if (p->prm->dead)
-		{
-			pthread_mutex_unlock(&p->prm->m_dead);
+		pthread_mutex_lock(&p->sim->m_dead);
+		if (p->sim->dead) {
+			pthread_mutex_unlock(&p->sim->m_dead);
 			return ;
 		}
-		pthread_mutex_unlock(&p->prm->m_dead);
+		pthread_mutex_unlock(&p->sim->m_dead);
 	}
 }
 
-static void	lock_fork(t_philo *p, int n)
-{
-	if (p->id % 2)
-	{
-		if (n)
-			pthread_mutex_lock(p->m_rf);
-		else
-			pthread_mutex_lock(p->m_lf);
+static void	lock_fork(Philo *p, int n) {
+	if (p->id % 2) {
+		if (n) {
+			pthread_mutex_lock(p->right_fork);
+		} else {
+			pthread_mutex_lock(p->left_fork);
+		}
+	} else {
+		if (n) {
+			pthread_mutex_lock(p->left_fork);
+		} else {
+			pthread_mutex_lock(p->right_fork);
+		}
 	}
-	else
-	{
-		if (n)
-			pthread_mutex_lock(p->m_lf);
-		else
-			pthread_mutex_lock(p->m_rf);
-	}
-	print(p, FORK);
+	display_philo_state(p, FORK);
 }
 
-static int	eat(t_philo *p)
-{
+static int	eat(Philo *p) {
 	lock_fork(p, 1);
-	if (p->prm->count == 1)
-	{
-		pthread_mutex_unlock(p->m_rf);
-		wait(p, p->prm->d_time);
+	if (p->sim->count == 1) {
+		pthread_mutex_unlock(p->right_fork);
+		wait(p, p->sim->time_to_die);
 		return (1);
 	}
 	lock_fork(p, 0);
 	pthread_mutex_lock(&p->m_lasteat);
 	p->last_eat = timestamp();
 	pthread_mutex_unlock(&p->m_lasteat);
-	print(p, EAT);
+	display_philo_state(p, EAT);
 	p->eat++;
-	wait(p, p->prm->e_time);
-	pthread_mutex_unlock(p->m_lf);
-	pthread_mutex_unlock(p->m_rf);
-	if (p->eat == p->prm->rep)
-	{
-		pthread_mutex_lock(&p->prm->m_finished);
-		p->prm->finished++;
-		pthread_mutex_unlock(&p->prm->m_finished);
+	wait(p, p->sim->time_to_eat);
+	pthread_mutex_unlock(p->left_fork);
+	pthread_mutex_unlock(p->right_fork);
+	if (p->eat == p->sim->rep) {
+		pthread_mutex_lock(&p->sim->m_finished);
+		p->sim->finished++;
+		pthread_mutex_unlock(&p->sim->m_finished);
 		return (1);
 	}
 	return (0);
 }
-
-int	wait_threads(t_philo *p)
-{
-	pthread_mutex_lock(&p->prm->m_started);
-	if (p->prm->started < p->prm->count)
-	{
-		pthread_mutex_unlock(&p->prm->m_started);
-		return (1);
-	}
-	pthread_mutex_unlock(&p->prm->m_started);
-	return (0);
+void	wait_threads(Philo *philo) {
+    while (true) {
+        pthread_mutex_lock(&philo->sim->m_started);
+        if (philo->sim->started >= philo->sim->count) {
+            pthread_mutex_unlock(&philo->sim->m_started);
+            return ;
+        }
+        pthread_mutex_unlock(&philo->sim->m_started);
+        usleep(100);
+    }
 }
 
-void	*routine(void *philo)
-{
-	t_philo	*p;
+void	*routine(void *p) {
+	Philo	*philo = (Philo *)p;
 
-	p = (t_philo *)philo;
-	if (wait_threads(p))
-		return (NULL);
-	if ((p->id + 1) % 2)
-		wait(p, p->prm->e_time / 2);
-	while (1)
-	{
-		pthread_mutex_lock(&p->prm->m_dead);
-		if (p->prm->dead)
-		{
-			pthread_mutex_unlock(&p->prm->m_dead);
+	wait_threads(philo);
+	if ((philo->id + 1) % 2) {
+		wait(philo, philo->sim->time_to_eat / 2);
+	}
+	while (1) {
+		pthread_mutex_lock(&philo->sim->m_dead);
+		if (philo->sim->dead) {
+			pthread_mutex_unlock(&philo->sim->m_dead);
 			break ;
 		}
-		pthread_mutex_unlock(&p->prm->m_dead);
-		if (eat(p))
+		pthread_mutex_unlock(&philo->sim->m_dead);
+		if (eat(philo)) {
 			break ;
-		print(p, SLEEP);
-		wait(p, p->prm->s_time);
-		print(p, THINK);
-		if (p->prm->count % 2)
-			wait(p, p->prm->e_time / 2);
+		}
+		display_philo_state(philo, SLEEP);
+		wait(philo, philo->sim->time_to_sleep);
+		display_philo_state(philo, THINK);
+		if (philo->sim->count % 2) {
+			wait(philo, philo->sim->time_to_eat / 2);
+		}
 	}
 	return (NULL);
 }

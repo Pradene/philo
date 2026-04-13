@@ -1,59 +1,39 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   destroy.c                                          :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: lpradene <marvin@42.fr>                    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/02/06 12:45:47 by lpradene          #+#    #+#             */
-/*   Updated: 2023/02/06 12:46:15 by lpradene         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#include "../includes/philo.h"
 
-#include "../includes/philosophers.h"
-
-void	destroy_mutex(t_prm *prm)
-{
-	pthread_mutex_destroy(&prm->m_write);
-	pthread_mutex_destroy(&prm->m_finished);
-	pthread_mutex_destroy(&prm->m_started);
-	pthread_mutex_destroy(&prm->m_dead);
-}
-
-void	destroy_count(t_philo *philo, int count)
-{
+void	destroy_philos(Philo *philo, int count) {
 	int	i;
 
-	pthread_mutex_destroy(&philo->prm->m_write);
-	pthread_mutex_destroy(&philo->prm->m_finished);
-	pthread_mutex_destroy(&philo->prm->m_started);
-	pthread_mutex_destroy(&philo->prm->m_dead);
-	i = -1;
-	while (++i < count)
-	{
-		pthread_mutex_destroy(philo[i].m_rf);
+	pthread_mutex_destroy(&philo->sim->m_write);
+	pthread_mutex_destroy(&philo->sim->m_finished);
+	pthread_mutex_destroy(&philo->sim->m_started);
+	pthread_mutex_destroy(&philo->sim->m_dead);
+	i = 0;
+	while (i < count) {
+		pthread_mutex_destroy(philo[i].right_fork);
 		pthread_mutex_destroy(&philo[i].m_lasteat);
-		free(philo[i].m_rf);
+		free(philo[i].right_fork);
+		++i;
 	}
 	free(philo);
 }
 
-void	destroy(t_philo *philo)
-{
+void	destroy_simulation(Philo *philo) {
 	int	i;
 
-	pthread_mutex_destroy(&philo->prm->m_write);
-	pthread_mutex_destroy(&philo->prm->m_finished);
-	pthread_mutex_destroy(&philo->prm->m_started);
-	pthread_mutex_destroy(&philo->prm->m_dead);
-	i = -1;
-	while (++i < philo->prm->count)
-	{
-		pthread_mutex_destroy(philo[i].m_rf);
+	pthread_mutex_destroy(&philo->sim->m_write);
+	pthread_mutex_destroy(&philo->sim->m_finished);
+	pthread_mutex_destroy(&philo->sim->m_started);
+	pthread_mutex_destroy(&philo->sim->m_dead);
+	i = 0;
+	while (i < philo->sim->count) {
+		pthread_mutex_destroy(philo[i].right_fork);
 		pthread_mutex_destroy(&philo[i].m_lasteat);
+		++i;
 	}
-	i = -1;
-	while (++i < philo->prm->count)
-		free(philo[i].m_rf);
+	i = 0;
+	while (i < philo->sim->count) {
+		free(philo[i].right_fork);
+		++i;
+	}
 	free(philo);
 }
