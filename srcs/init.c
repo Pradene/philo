@@ -36,19 +36,19 @@ static int  parse_positive_int(const char *str, const char *name, int max) {
 	}
 }
 
-static int  parse_args(Simulation *s, int argc, char **argv) {
+static int  parse_args(Simulation *sim, int argc, char **argv) {
     if (argc != 5 && argc != 6) {
         fprintf(stderr, "Usage: ./philo N_PHILO DIE_TIME EAT_TIME SLEEP_TIME [REP]\n");
         return (-1);
     }
 
-    s->count         = parse_positive_int(argv[1], "N_PHILO",   200);
-    s->time_to_die   = parse_positive_int(argv[2], "DIE_TIME",  0);
-    s->time_to_eat   = parse_positive_int(argv[3], "EAT_TIME",  0);
-    s->time_to_sleep = parse_positive_int(argv[4], "SLEEP_TIME",0);
-    s->rep           = (argc == 6) ? parse_positive_int(argv[5], "REP", 0) : -1;
+    sim->philos_count         = parse_positive_int(argv[1], "N_PHILO",   200);
+    sim->time_to_die   = parse_positive_int(argv[2], "DIE_TIME",  0);
+    sim->time_to_eat   = parse_positive_int(argv[3], "EAT_TIME",  0);
+    sim->time_to_sleep = parse_positive_int(argv[4], "SLEEP_TIME",0);
+    sim->repetition           = (argc == 6) ? parse_positive_int(argv[5], "REP", 0) : -1;
 
-	if (s->count < 0 || s->time_to_die < 0 || s->time_to_eat < 0 || s->time_to_sleep < 0 || s->rep == 0) {
+	if (sim->philos_count < 0 || sim->time_to_die < 0 || sim->time_to_eat < 0 || sim->time_to_sleep < 0 || sim->repetition == 0) {
         return (-1);
 	}
 
@@ -67,29 +67,29 @@ static int  init_mutexes(pthread_mutex_t **mutexes, int count) {
     return (0);
 }
 
-static int  init_simulation_mutexes(Simulation *s) {
+static int  init_simulation_mutexes(Simulation *sim) {
     pthread_mutex_t *mutexes[] = {
-        &s->m_dead,
-        &s->m_started,
-        &s->m_finished,
-        &s->m_write,
+        &sim->m_dead,
+        &sim->m_started,
+        &sim->m_finished,
+        &sim->m_write,
     };
     return (init_mutexes(mutexes, 4));
 }
 
-static int  init_philo_mutexes(Philo *p) {
-    p->right_fork = malloc(sizeof(pthread_mutex_t));
-    if (!p->right_fork) {
+static int  init_philo_mutexes(Philo *philo) {
+    philo->right_fork = malloc(sizeof(pthread_mutex_t));
+    if (!philo->right_fork) {
         return (-1);
 	}
 
     pthread_mutex_t *mutexes[] = {
-		p->right_fork,
-		&p->m_lasteat
+		philo->right_fork,
+		&philo->m_lasteat
 	};
     if (init_mutexes(mutexes, 2) != 0) {
-        free(p->right_fork);
-		p->right_fork = NULL;
+        free(philo->right_fork);
+		philo->right_fork = NULL;
 		return (-1);
 	}
     return (0);
@@ -101,31 +101,32 @@ static void link_forks(Philo *philos, int count) {
 	}
 }
 
-static int  init_philo(Philo *p, Simulation *s, int id) {
-    if (init_philo_mutexes(p) != 0) {
+static int  init_philo(Philo *philo, Simulation *sim, int id) {
+    if (init_philo_mutexes(philo) != 0) {
         return (-1);
 	}
-    p->id       = id + 1;
-    p->sim      = s;
-    p->eat      = 0;
-    p->last_eat = timestamp();
+    philo->id       = id + 1;
+    philo->sim      = sim;
+    philo->eat      = 0;
+    philo->last_eat = 0;
     return (0);
 }
 
-Philo   *init_philos(Simulation *s) {
-    Philo *philos = calloc(s->count, sizeof(Philo));
+Philo   *init_philos(Simulation *sim) {
+    Philo *philos = calloc(sim->philos_count, sizeof(Philo));
     if (!philos) {
         return (NULL);
 	}
 
-    for (int i = 0; i < s->count; i++) {
-        if (init_philo(&philos[i], s, i) != 0) {
-            destroy_philos(philos, i);
+    for (size_t i = 0; i < sim->philos_count; i++) {
+        if (init_philo(&philos[i], sim, i) != 0) {
+			sim->philos_count = i;
+            destroy_simulation(sim);
             return (NULL);
         }
     }
-    if (s->count > 1) {
-        link_forks(philos, s->count);
+    if (sim->philos_count > 1) {
+        link_forks(philos, sim->philos_count);
 	}
     return (philos);
 }
@@ -140,6 +141,12 @@ Simulation  *init_simulation(int argc, char **argv) {
         free(sim);
         return (NULL);
     }
+
+	sim->philos = init_philos(sim);
+	if (!sim->philos) {
+		free(sim);
+		return (NULL);
+	}
 
     return (sim);
 }

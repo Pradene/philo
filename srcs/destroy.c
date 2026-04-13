@@ -1,39 +1,15 @@
 #include "../includes/philo.h"
 
-void	destroy_philos(Philo *philo, int count) {
-	int	i;
-
-	pthread_mutex_destroy(&philo->sim->m_write);
-	pthread_mutex_destroy(&philo->sim->m_finished);
-	pthread_mutex_destroy(&philo->sim->m_started);
-	pthread_mutex_destroy(&philo->sim->m_dead);
-	i = 0;
-	while (i < count) {
-		pthread_mutex_destroy(philo[i].right_fork);
-		pthread_mutex_destroy(&philo[i].m_lasteat);
-		free(philo[i].right_fork);
-		++i;
+void	destroy_simulation(Simulation *sim) {
+	pthread_mutex_destroy(&sim->m_write);
+	pthread_mutex_destroy(&sim->m_finished);
+	pthread_mutex_destroy(&sim->m_started);
+	pthread_mutex_destroy(&sim->m_dead);
+	for (size_t i = 0; i < sim->philos_count; ++i) {
+		Philo philo = sim->philos[i];
+		pthread_mutex_destroy(philo.right_fork);
+		pthread_mutex_destroy(&philo.m_lasteat);
+		free(philo.right_fork);
 	}
-	free(philo);
-}
-
-void	destroy_simulation(Philo *philo) {
-	int	i;
-
-	pthread_mutex_destroy(&philo->sim->m_write);
-	pthread_mutex_destroy(&philo->sim->m_finished);
-	pthread_mutex_destroy(&philo->sim->m_started);
-	pthread_mutex_destroy(&philo->sim->m_dead);
-	i = 0;
-	while (i < philo->sim->count) {
-		pthread_mutex_destroy(philo[i].right_fork);
-		pthread_mutex_destroy(&philo[i].m_lasteat);
-		++i;
-	}
-	i = 0;
-	while (i < philo->sim->count) {
-		free(philo[i].right_fork);
-		++i;
-	}
-	free(philo);
+	free(sim->philos);
 }

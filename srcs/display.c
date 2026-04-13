@@ -1,30 +1,25 @@
 #include "../includes/philo.h"
 
+static const char *philo_state_as_string(PhiloState state) {
+	switch (state) {	
+	case FORK:  return ("has taken a fork");
+	case EAT:   return ("is eating");
+	case SLEEP: return ("is sleeping");
+	case THINK: return ("is thinking");
+	default:    return ("");
+	}
+}
+
 void	display_philo_state(Philo *p, PhiloState state) {
-	pthread_mutex_lock(&p->sim->m_dead);
-	if (p->sim->dead) {
-		pthread_mutex_unlock(&p->sim->m_dead);
+	Simulation *sim = (Simulation *)p->sim;
+	
+	pthread_mutex_lock(&sim->m_dead);
+	if (sim->dead) {
+		pthread_mutex_unlock(&sim->m_dead);
 		return ;
 	}
-	pthread_mutex_unlock(&p->sim->m_dead);
-	pthread_mutex_lock(&p->m_lasteat);
-	pthread_mutex_lock(&p->sim->m_write);
-	switch (state) {	
-	case FORK:
-		printf("%zu %d has taken a fork\n", timestamp(), p->id);
-		break;
-	case EAT:
-		printf("%zu %d is eating\n", timestamp(), p->id);
-		break;
-	case SLEEP:
-		printf("%zu %d is sleeping\n", timestamp(), p->id);
-		break;
-	case THINK:
-		printf("%zu %d is thinking\n", timestamp(), p->id);
-		break;
-	default:
-		break;
-	}
-	pthread_mutex_unlock(&p->sim->m_write);
-	pthread_mutex_unlock(&p->m_lasteat);
+	pthread_mutex_unlock(&sim->m_dead);
+	pthread_mutex_lock(&sim->m_write);
+	printf("%zu %d %s\n", simulation_elapsed_time(sim), p->id, philo_state_as_string(state));
+	pthread_mutex_unlock(&sim->m_write);
 }
