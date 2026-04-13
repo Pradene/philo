@@ -2,11 +2,12 @@
 
 bool	is_philo_dead(Simulation *sim, Philo *p) {
 	pthread_mutex_lock(&p->m_lasteat);
-	size_t elapsed_time_since_last_eat = simulation_elapsed_time(sim) - p->last_eat;
+    size_t now = simulation_elapsed_time(sim);
+	size_t elapsed_time_since_last_eat = now - p->last_eat;
 	pthread_mutex_unlock(&p->m_lasteat);
 	if (elapsed_time_since_last_eat >= sim->time_to_die) {
 		pthread_mutex_lock(&sim->m_write);
-		printf("%zu %d died\n", simulation_elapsed_time(sim), p->id);
+		printf("%zu %d died\n", now, p->id);
 		pthread_mutex_unlock(&sim->m_write);
 		pthread_mutex_lock(&sim->m_dead);
 		sim->dead = true;

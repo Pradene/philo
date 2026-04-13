@@ -1,14 +1,5 @@
 #include "../includes/philo.h"
 
-static void	wait(size_t time) {
-	size_t	i;
-
-	i = 0;
-	while (++i <= time / 10) {
-		usleep(1000 * 10);
-	}
-}
-
 static void	lock_fork(Philo *p, int n) {
 	if (p->id % 2) {
 		if (n) pthread_mutex_lock(p->right_fork);
@@ -25,7 +16,7 @@ static int	eat(Philo *p) {
 	lock_fork(p, 1);
 	if (p->sim->philos_count == 1) {
 		pthread_mutex_unlock(p->right_fork);
-		wait(p->sim->time_to_die);
+		usleep(1000 * p->sim->time_to_die);
 		return (1);
 	}
 	lock_fork(p, 0);
@@ -34,7 +25,7 @@ static int	eat(Philo *p) {
 	pthread_mutex_unlock(&p->m_lasteat);
 	display_philo_state(p, EAT);
 	p->eat++;
-	wait(p->sim->time_to_eat);
+	usleep(1000 * p->sim->time_to_eat);
 	pthread_mutex_unlock(p->left_fork);
 	pthread_mutex_unlock(p->right_fork);
 	if (p->eat == p->sim->repetition) {
@@ -46,7 +37,7 @@ static int	eat(Philo *p) {
 	return (0);
 }
 
-static void	wait_threads(Philo *philo) {
+static void	wait_until_philos_ready(Philo *philo) {
     while (true) {
         pthread_mutex_lock(&philo->sim->m_started);
         if (philo->sim->philos_ready >= philo->sim->philos_count) {
@@ -61,9 +52,9 @@ static void	wait_threads(Philo *philo) {
 void	*philo_routine(void *p) {
 	Philo	*philo = (Philo *)p;
 
-	wait_threads(philo);
+	wait_until_philos_ready(philo);
 	if ((philo->id + 1) % 2) {
-		wait(philo->sim->time_to_eat / 2);
+		usleep(1000 * philo->sim->time_to_eat / 2);
 	}
 	while (1) {
 		pthread_mutex_lock(&philo->sim->m_dead);
@@ -76,10 +67,10 @@ void	*philo_routine(void *p) {
 			break ;
 		}
 		display_philo_state(philo, SLEEP);
-		wait(philo->sim->time_to_sleep);
+		usleep(1000 * philo->sim->time_to_sleep);
 		display_philo_state(philo, THINK);
 		if (philo->sim->philos_count % 2) {
-			wait(philo->sim->time_to_eat / 2);
+			usleep(1000 * philo->sim->time_to_eat / 2);
 		}
 	}
 	return (NULL);
