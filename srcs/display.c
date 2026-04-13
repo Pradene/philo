@@ -20,6 +20,6 @@ void	display_philo_state(Philo *p, PhiloState state) {
 	}
 	pthread_mutex_unlock(&sim->m_dead);
 	pthread_mutex_lock(&sim->m_write);
-	printf("%zu %d %s\n", simulation_elapsed_time(sim), p->id, philo_state_as_string(state));
+	printf("%zu %zu %s\n", simulation_elapsed_time(sim), p->id, philo_state_as_string(state));
 	pthread_mutex_unlock(&sim->m_write);
 }

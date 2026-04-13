@@ -1,25 +1,25 @@
 #include "../includes/philo.h"
 
-static void	lock_fork(Philo *p, int n) {
+static void	lock_fork(Philo *p, bool is_first) {
 	if (p->id % 2) {
-		if (n) pthread_mutex_lock(p->right_fork);
-		else   pthread_mutex_lock(p->left_fork);
+		if (is_first)	pthread_mutex_lock(p->right_fork);
+		else			pthread_mutex_lock(p->left_fork);
 
 	} else {
-		if (n) pthread_mutex_lock(p->left_fork);
-		else   pthread_mutex_lock(p->right_fork);
+		if (is_first)	pthread_mutex_lock(p->left_fork);
+		else			pthread_mutex_lock(p->right_fork);
 	}
 	display_philo_state(p, FORK);
 }
 
 static int	eat(Philo *p) {
-	lock_fork(p, 1);
+	lock_fork(p, true);
 	if (p->sim->philos_count == 1) {
 		pthread_mutex_unlock(p->right_fork);
 		usleep(1000 * p->sim->time_to_die);
 		return (1);
 	}
-	lock_fork(p, 0);
+	lock_fork(p, false);
 	pthread_mutex_lock(&p->m_lasteat);
 	p->last_eat = simulation_elapsed_time(p->sim);
 	pthread_mutex_unlock(&p->m_lasteat);

@@ -1,6 +1,6 @@
 #include "../includes/philo.h"
 
-static int  is_digit(char c) {
+static bool	is_digit(char c) {
     return (c >= '0' && c <= '9');
 }
  
@@ -22,7 +22,7 @@ static int	ft_atoi(const char *s) {
     return ((int)n);
 }
 
-static int  parse_positive_int(const char *str, const char *name, int max) {
+static int  parse_uint(const char *str, const char *name, int max) {
     int val = ft_atoi(str);
  
     if (val <= 0) {
@@ -42,11 +42,11 @@ static int  parse_args(Simulation *sim, int argc, char **argv) {
         return (-1);
     }
 
-    sim->philos_count         = parse_positive_int(argv[1], "N_PHILO",   200);
-    sim->time_to_die   = parse_positive_int(argv[2], "DIE_TIME",  0);
-    sim->time_to_eat   = parse_positive_int(argv[3], "EAT_TIME",  0);
-    sim->time_to_sleep = parse_positive_int(argv[4], "SLEEP_TIME",0);
-    sim->repetition           = (argc == 6) ? parse_positive_int(argv[5], "REP", 0) : -1;
+    sim->philos_count  = parse_uint(argv[1], "N_PHILO",   200);
+    sim->time_to_die   = parse_uint(argv[2], "DIE_TIME",  0);
+    sim->time_to_eat   = parse_uint(argv[3], "EAT_TIME",  0);
+    sim->time_to_sleep = parse_uint(argv[4], "SLEEP_TIME",0);
+    sim->repetition    = (argc == 6) ? parse_uint(argv[5], "REP", 0) : -1;
 
 	if (sim->philos_count < 0 || sim->time_to_die < 0 || sim->time_to_eat < 0 || sim->time_to_sleep < 0 || sim->repetition == 0) {
         return (-1);
@@ -101,7 +101,7 @@ static void link_forks(Philo *philos, int count) {
 	}
 }
 
-static int  init_philo(Philo *philo, Simulation *sim, int id) {
+static int	init_philo(Philo *philo, Simulation *sim, int id) {
     if (init_philo_mutexes(philo) != 0) {
         return (-1);
 	}
@@ -112,7 +112,7 @@ static int  init_philo(Philo *philo, Simulation *sim, int id) {
     return (0);
 }
 
-Philo   *init_philos(Simulation *sim) {
+static Philo	*init_philos(Simulation *sim) {
     Philo *philos = calloc(sim->philos_count, sizeof(Philo));
     if (!philos) {
         return (NULL);
@@ -131,7 +131,7 @@ Philo   *init_philos(Simulation *sim) {
     return (philos);
 }
 
-Simulation  *init_simulation(int argc, char **argv) {
+Simulation	*init_simulation(int argc, char **argv) {
     Simulation *sim = calloc(1, sizeof(Simulation));
     if (sim == NULL) {
         return (NULL);

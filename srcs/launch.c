@@ -1,6 +1,6 @@
 #include "../includes/philo.h"
 
-void	pthread_quit(pthread_t *threads, size_t count) {
+static void	pthread_quit(pthread_t *threads, size_t count) {
 	while (count--) {
 		if (pthread_join(threads[count], NULL)) {
 			return ;
@@ -8,7 +8,7 @@ void	pthread_quit(pthread_t *threads, size_t count) {
 	}
 }
 
-int	launch(Simulation *sim) {
+bool	launch_simulation(Simulation *sim) {
 	pthread_t	monitor;
 	pthread_t	*threads;
 	size_t		i;

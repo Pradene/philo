@@ -7,7 +7,7 @@ int	main(int argc, char **argv) {
 	if (!sim) {
 		return (1);
 	}
-	if (launch(sim)) {
+	if (launch_simulation(sim)) {
 		return (1);
 	}
 	destroy_simulation(sim);
