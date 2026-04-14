@@ -48,7 +48,7 @@ static int  parse_args(Simulation *sim, int argc, char **argv) {
     sim->time_to_sleep = parse_uint(argv[4], "SLEEP_TIME",0);
     sim->repetition    = (argc == 6) ? parse_uint(argv[5], "REP", 0) : -1;
 
-	if (sim->philos_count < 0 || sim->time_to_die < 0 || sim->time_to_eat < 0 || sim->time_to_sleep < 0 || sim->repetition == 0) {
+	if (sim->philos_count == 0 || sim->time_to_die == 0 || sim->time_to_eat == 0 || sim->time_to_sleep == 0 || sim->repetition == 0) {
         return (-1);
 	}
 
@@ -105,7 +105,7 @@ static int	init_philo(Philo *philo, Simulation *sim, int id) {
     if (init_philo_mutexes(philo) != 0) {
         return (-1);
 	}
-    philo->id       = id + 1;
+    philo->id       = id;
     philo->sim      = sim;
     philo->eat      = 0;
     philo->last_eat = 0;
@@ -119,7 +119,7 @@ static Philo	*init_philos(Simulation *sim) {
 	}
 
     for (size_t i = 0; i < sim->philos_count; i++) {
-        if (init_philo(&philos[i], sim, i) != 0) {
+        if (init_philo(&philos[i], sim, i + 1) != 0) {
 			sim->philos_count = i;
             destroy_simulation(sim);
             return (NULL);

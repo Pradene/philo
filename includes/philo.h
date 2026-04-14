@@ -52,7 +52,6 @@ Simulation  *init_simulation(int argc, char **argv);
 bool		launch_simulation(Simulation *sim);
 void		destroy_simulation(Simulation *sim);
 size_t		simulation_elapsed_time(Simulation *sim);
-void		*simulation_monitor(void *arg);
 
 void		*philo_routine(void *arg);
 void		display_philo_state(Philo *philo, PhiloState state);

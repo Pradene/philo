@@ -8,5 +8,8 @@ size_t	get_time(void) {
 }
 
 size_t	simulation_elapsed_time(Simulation *sim) {
-	return get_time() - sim->start_time;
+	pthread_mutex_lock(&sim->m_started);
+	size_t start_time = sim->start_time;
+	pthread_mutex_unlock(&sim->m_started);
+	return get_time() - start_time;
 }

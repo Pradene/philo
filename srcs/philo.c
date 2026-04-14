@@ -53,7 +53,7 @@ void	*philo_routine(void *p) {
 	Philo	*philo = (Philo *)p;
 
 	wait_until_philos_ready(philo);
-	if ((philo->id + 1) % 2) {
+	if (philo->id % 2 == 0) {
 		usleep(1000 * philo->sim->time_to_eat / 2);
 	}
 	while (1) {
