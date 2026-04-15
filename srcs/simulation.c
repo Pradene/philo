@@ -59,6 +59,7 @@ static void *simulation_monitor(void *arg) {
             pthread_mutex_unlock(&sim->m_dead);
             return (NULL);
         }
+		usleep(500);
     }
 }
 
