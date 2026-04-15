@@ -14,45 +14,28 @@ static void	lock_fork(Philo *p, bool is_first) {
 
 static int	eat(Philo *p) {
 	lock_fork(p, true);
-	if (p->sim->philos_count == 1) {
-		pthread_mutex_unlock(p->right_fork);
-		usleep(1000 * p->sim->time_to_die);
-		return (1);
-	}
 	lock_fork(p, false);
 	pthread_mutex_lock(&p->m_lasteat);
-	p->last_eat = simulation_elapsed_time(p->sim);
+	p->last_eat = get_time();
+	p->eat++;
 	pthread_mutex_unlock(&p->m_lasteat);
 	display_philo_state(p, EAT);
-	p->eat++;
 	usleep(1000 * p->sim->time_to_eat);
 	pthread_mutex_unlock(p->left_fork);
 	pthread_mutex_unlock(p->right_fork);
-	if (p->eat == p->sim->repetition) {
-		pthread_mutex_lock(&p->sim->m_finished);
-		p->sim->philos_sated++;
-		pthread_mutex_unlock(&p->sim->m_finished);
-		return (1);
-	}
 	return (0);
-}
-
-static void	wait_until_philos_ready(Philo *philo) {
-    while (true) {
-        pthread_mutex_lock(&philo->sim->m_started);
-        if (philo->sim->philos_ready >= philo->sim->philos_count) {
-            pthread_mutex_unlock(&philo->sim->m_started);
-            return ;
-        }
-        pthread_mutex_unlock(&philo->sim->m_started);
-        usleep(100);
-    }
 }
 
 void	*philo_routine(void *p) {
 	Philo	*philo = (Philo *)p;
 
-	wait_until_philos_ready(philo);
+	wait_until_start_time(philo->sim);
+	if (philo->sim->philos_count == 1) {
+		lock_fork(philo, true);
+		pthread_mutex_unlock(philo->right_fork);
+		usleep(1000 * philo->sim->time_to_die);
+		return (NULL);
+	}
 	if (philo->id % 2 == 0) {
 		usleep(1000 * philo->sim->time_to_eat / 2);
 	}

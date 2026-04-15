@@ -8,8 +8,11 @@ size_t	get_time(void) {
 }
 
 size_t	simulation_elapsed_time(Simulation *sim) {
-	pthread_mutex_lock(&sim->m_started);
-	size_t start_time = sim->start_time;
-	pthread_mutex_unlock(&sim->m_started);
-	return get_time() - start_time;
+	return get_time() - sim->start_time;
+}
+
+void	wait_until_start_time(Simulation *sim) {
+	while (get_time() < sim->start_time) {
+		continue;
+	}
 }

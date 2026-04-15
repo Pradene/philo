@@ -10,16 +10,14 @@ static const char *philo_state_as_string(PhiloState state) {
 	}
 }
 
-void	display_philo_state(Philo *p, PhiloState state) {
-	Simulation *sim = (Simulation *)p->sim;
-	
+void	display_philo_state(Philo *philo, PhiloState state) {
+	Simulation *sim = (Simulation *)philo->sim;
+
+	pthread_mutex_lock(&sim->m_write);
 	pthread_mutex_lock(&sim->m_dead);
-	if (sim->dead) {
-		pthread_mutex_unlock(&sim->m_dead);
-		return ;
+	if (!sim->dead) {
+		printf("%zu %zu %s\n", simulation_elapsed_time(sim), philo->id, philo_state_as_string(state));
 	}
 	pthread_mutex_unlock(&sim->m_dead);
-	pthread_mutex_lock(&sim->m_write);
-	printf("%zu %zu %s\n", simulation_elapsed_time(sim), p->id, philo_state_as_string(state));
 	pthread_mutex_unlock(&sim->m_write);
 }
